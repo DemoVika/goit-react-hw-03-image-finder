@@ -16,9 +16,15 @@ export class Modal extends Component {
     window.removeEventListener('keydown', this.handleKeyDown);
   }
 
+  onClickOverlay = event => {
+    if (event.target === event.currentTarget) {
+      this.props.closeModal();
+    }
+  };
+
   render() {
     return (
-      <div className={css.overlay} onClick={this.props.closeModal}>
+      <div className={css.overlay} onClick={this.onClickOverlay}>
         <div className={css.modal}>
           <img src={this.props.modalImg} alt="big" />
         </div>

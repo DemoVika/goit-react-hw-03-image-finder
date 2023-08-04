@@ -26,14 +26,13 @@ export class App extends Component {
 
       apiRequest(query, currentPage)
         .then(response => {
-          this.setState({
-            cards:
-              query !== prevState.query
-                ? response.hits
-                : [...prevState.cards, ...response.hits],
-            status: 'resolved',
-            loadMore:
-              this.state.currentPage < Math.ceil(response.totalHits / 12),
+          this.setState(prevState => {
+            return {
+              cards: [...prevState.cards, ...response.hits],
+              status: 'resolved',
+              loadMore:
+                this.state.currentPage < Math.ceil(response.totalHits / 12),
+            };
           });
         })
         .catch(error => this.setState({ error, status: 'rejected' }));
@@ -41,15 +40,16 @@ export class App extends Component {
   }
 
   loadMoreFn = () => {
-    const { currentPage } = this.state;
-    this.setState({
-      currentPage: currentPage + 1,
+    this.setState(prevState => {
+      return { currentPage: prevState.currentPage + 1 };
     });
   };
 
   onSubmit = value => {
     this.setState({
       query: value,
+      cards: [],
+      currentPage: 1,
     });
   };
 
@@ -60,15 +60,31 @@ export class App extends Component {
     this.setState({ modal: false });
   };
 
+  galleryRender = () => {
+    const { status, cards } = this.state;
+    if (status === 'idle') {
+      return <div>Введите тему</div>;
+    }
+
+    if (status === 'rejected') {
+      return <div>Ошибка</div>;
+    }
+
+    if (status === 'resolved' || status === 'pending') {
+      return <ImageGallery cards={cards} onCardClick={this.onCardClick} />;
+    }
+  };
+
   render() {
     return (
       <div className={css.app}>
         <Searchbar onSubmit={this.onSubmit} />
-        <ImageGallery
+        {this.galleryRender()}
+        {/* <ImageGallery
           cards={this.state.cards}
-          status={this.state.status}
+          // status={this.state.status}
           onCardClick={this.onCardClick}
-        />
+        /> */}
         {this.state.status === 'pending' && <Loader />}
         {this.state.status === 'resolved' && this.state.loadMore && (
           <Button loadMoreFn={this.loadMoreFn}></Button>
